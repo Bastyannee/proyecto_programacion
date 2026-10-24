@@ -1,0 +1,42 @@
+.
+├── ARCHITECTURE.txt
+├── README.md
+├── pokedex/
+│   ├── lib/
+│   │   ├── main.dart                      # Arranque de la app: MaterialApp, tema rojo y pantalla inicial
+│   │   ├── pokedex_screen.dart            # Pantalla principal: búsqueda + lista paginada ordenada por id
+│   │   ├── pokemon_card.dart              # Tarjeta de un Pokémon en la lista (sprite, nombre, número)
+│   │   ├── pokemon_sprite.dart            # Sprite con ícono de respaldo si no hay URL o falla la carga
+│   │   ├── page_size_selector.dart        # Selector de cuántos Pokémon se muestran por página
+│   │   ├── pokemon_search_bar.dart        # Barra de búsqueda por nombre exacto (abre el detalle)
+│   │   ├── pokemon_detail_screen.dart     # Vista de detalle: sprite, nombre, peso y altura
+│   │   ├── pokemon_detail.dart            # Modelo del detalle (GET /pokemon/{name})
+│   │   ├── pokemon_summary.dart           # Modelo de la lista: id, nombre, número y URL del sprite
+│   │   ├── pokemon_repository.dart        # Contrato para obtener una página de Pokémon
+│   │   ├── http_pokemon_repository.dart   # Implementación del repositorio contra la PokéAPI
+│   │   └── pokemon_api.dart               # fetchPokemon (detalle por nombre) y typedef PokemonFetcher
+│   ├── test/
+│   │   ├── api_test.dart                  # Tests de fetchPokemon con cliente HTTP mockeado
+│   │   ├── api_test.mocks.dart            # Mocks generados (build_runner)
+│   │   ├── pokedex_list_test.dart         # Tests de la lista: orden, paginación, sprite, detalle, búsqueda
+│   │   ├── pokemon_detail_test.dart       # Tests del modelo y la pantalla de detalle
+│   │   └── pokemon_fixtures.dart          # JSON de ejemplo de la PokéAPI para los tests
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
+└── sprints/
+    └── sprint0.md
+
+Flujo de datos
+--------------
+main.dart -> PokedexScreen(repository: HttpPokemonRepository())
+  Lista:    PokedexScreen -> PokemonRepository.fetchPage(limit, offset) -> [PokemonSummary]
+            -> se ordena por id -> PokemonCard(PokemonSprite)
+  Detalle:  tocar una tarjeta o buscar por nombre -> PokemonDetailScreen
+            -> fetchPokemon(name) -> PokemonDetail.fromJson
+
+Decisiones de diseño
+--------------------
+- La UI depende de PokemonRepository (abstracción), no de http: en los tests se usa un fake.
+- fetchPokemon se inyecta en PokedexScreen mediante PokemonFetcher.
+- Los widgets de presentación son StatelessWidget; el estado vive en PokedexScreen.
+- El sprite de la lista se arma con el id, sin llamadas extra a la API.
